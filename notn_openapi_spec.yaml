@@ -1,0 +1,795 @@
+openapi: 3.0.3
+info:
+  title: NoTN (Network of Trusted Networks) API
+  description: |
+    This API specification defines the webhook subscription and other endpoints that parties in the NoTN (Network of Trusted Networks) 
+    must implement based on their role. The specification follows standard webhook implementation patterns including 
+    callback URL registration and OAuth 2.0 bearer token authentication.
+    
+    ## Authentication
+    All endpoints require OAuth 2.0 bearer token authentication. The access token must be obtained from the `/token` endpoint (following iSHARE standard).
+
+    ## Alignment with DCSA
+    The endpoints in this specification are loosely aligned with the [DCSA webhook specification for track and trace](https://app.swaggerhub.com/apis/dcsaorg/DCSA_TNT/2.2.0#/Events/).
+    
+  version: "0.2"
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+security:
+  - BearerAuth: []
+
+paths:
+  /webhooks/shipment-subscriptions:
+    post:
+      tags:
+        - Shipper
+      summary: Subscribe to new shipments
+      description: |
+        Subscribe to new shipments. This endpoint is required for parties with the Shipper role.
+        The subscription can optionally request to filter shipments by context (e.g., "PDC" for Pharma Data Corridor).
+        
+        When a new shipment is created that matches the subscription criteria, the webhook will be triggered
+        by sending a POST request to the registered callback URL.
+      operationId: subscribeToShipments
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/NewShipmentSubscriptionRequest'
+      responses:
+        '201':
+          description: Subscription created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /webhooks/event-subscriptions:
+    post:
+      tags:
+        - Data Provider
+      summary: Subscribe to shipment events
+      description: |
+        Subscribe to new events for a specific shipment. This endpoint is required for parties with the Data Provider role.
+        The subscription can optionally request to filter events by type to receive only specific event types.
+        
+        When a shipment event occurs that matches the subscription criteria, the webhook will be triggered
+        by sending a POST request to the registered callback URL.
+      operationId: subscribeToEvents
+      security:
+        - BearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentEventSubscriptionRequest'
+      responses:
+        '201':
+          description: Subscription created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '403':
+          description: Forbidden - Insufficient permissions
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /webhooks/event-subscriptions/{subscriptionId}:
+    get:
+      tags:
+        - Data Provider
+      summary: Get subscription details
+      description: Retrieve details of a specific events subscription
+      operationId: getEventsSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          description: Unique identifier of the subscription
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Subscription details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Data Provider
+      summary: Delete subscription
+      description: Delete an events subscription
+      operationId: deleteEventsSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          description: Unique identifier of the subscription
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '204':
+          description: Subscription deleted successfully
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /webhooks/shipment-subscriptions/{subscriptionId}:
+    get:
+      tags:
+        - Shipper
+      summary: Get subscription details
+      description: Retrieve details of a shipments subscription
+      operationId: getShipmentsSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          description: Unique identifier of the subscription
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '200':
+          description: Subscription details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+    delete:
+      tags:
+        - Shipper
+      summary: Delete subscription
+      description: Delete a shipments subscription
+      operationId: deleteShipmentsSubscription
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: subscriptionId
+          in: path
+          required: true
+          description: Unique identifier of the subscription
+          schema:
+            type: string
+            format: uuid
+            example: "123e4567-e89b-12d3-a456-426614174000"
+      responses:
+        '204':
+          description: Subscription deleted successfully
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Subscription not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /shipments/{id}:
+    get:
+      tags:
+        - Shipper
+      summary: Get shipment details
+      description: |
+        Retrieve shipment details by ID. This endpoint is called by webhook subscribers after receiving
+        a new shipment notification to get the shipment UUID and additional details.
+      operationId: getShipmentDetails
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Shipment ID received in the webhook payload
+          schema:
+            type: string
+            example: "ship_12345"
+      responses:
+        '200':
+          description: Shipment details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ShipmentDetailsResponse'
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Shipment not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+  /shipment-events/{eventId}:
+    get:
+      tags:
+        - Data Provider
+      summary: Get event details
+      description: |
+        Retrieve event details by event ID. This endpoint is called by webhook subscribers after receiving
+        an event webhook call on the callbackurl to get detailed information about the event.
+      operationId: getEventDetails
+      security:
+        - BearerAuth: []
+      parameters:
+        - name: eventId
+          in: path
+          required: true
+          description: Shipment event ID received in the webhook payload
+          schema:
+            type: string
+            example: "evt_67890"
+      responses:
+        '200':
+          description: Shipment event details retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventDetailsResponse'
+        '401':
+          description: Unauthorized - Invalid or missing bearer token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Shipment event not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                
+  /example-shipment-callback-url:
+    post:
+      tags:
+        - Data Consumer
+      summary: Post new shipment to callback URL
+      description: |
+        Example endpoint for a Data Consumer to which the shipper will post new
+        shipments. The actual endpoint should be provided in the callbackUrl
+        parameter when subscribing. This example endpoint explains the format
+        of the POST request that the shipper will make to the callbackUrl.
+      operationId: postShipmentCallback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ShipmentWebhookPayload'
+      responses:
+        '200':
+          description: Shipment callback received successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+                
+  /example-event-callback-url:
+    post:
+      tags:
+        - Data Consumer
+      summary: Post new event to callback URL
+      description: |
+        Example endpoint for a Data Consumer to which the Data provider will 
+        post new events. The actual endpoint should be provided in the 
+        callbackUrl parameter when subscribing. This example endpoint explains 
+        the format of the POST request that the Data provider  will make to the 
+        callbackUrl.
+      operationId: postEventCallback
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EventWebhookPayload'
+      responses:
+        '200':
+          description: Shipment callback received successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SubscriptionResponse'
+        '400':
+          description: Invalid request parameters
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: |
+        OAuth 2.0 authorization based on bearer token. MUST contain "Bearer " + access token value. 
+        The access token must be obtained at the /token endpoint.
+
+  schemas:
+    NewShipmentSubscriptionRequest:
+      type: object
+      required:
+        - callbackUrl
+      properties:
+        callbackUrl:
+          type: string
+          format: uri
+          description: |
+            The URL where webhook notifications will be sent. Must be HTTPS for production use.
+            The server will send POST requests to this URL when new shipments match the subscription criteria.
+          example: "https://example.com/webhooks/new-shipments"
+        context:
+          type: string
+          description: |
+            Optional context filter to subscribe only to shipments in a specific context.
+            Examples include "PDC" (Pharma Data Corridor), "FMCG", "Electronics", etc.
+            If not provided, all shipments will be included.
+          example: "PDC"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata for the subscription, provided by the subscriber
+          example:
+            description: "Subscription for PDC shipments"
+            contactEmail: "webhooks@example.com"
+
+    ShipmentEventSubscriptionRequest:
+      type: object
+      required:
+        - callbackUrl
+        - shipmentUuid
+        - events
+      properties:
+        shipmentUuid:
+          type: string
+          format: uuid
+          description: |
+            UUID of the shipment for which a subscription to events is required.
+        callbackUrl:
+          type: string
+          format: uri
+          description: |
+            The URL where webhook notifications will be sent. Must be HTTPS for production use.
+            The server will send POST requests to this URL when shipment events match the subscription criteria.
+          example: "https://example.com/webhooks/shipment-events"
+        eventType:
+          type: array
+          items:
+            type: string
+          description: |
+            Optional filter to subscribe only to events of a specific type.
+            If not provided, all event types will be included.
+          example: ["shipment_created", "shipment_delivered"]
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata for the subscription, provided by the subscriber
+          example:
+            description: "Subscription for shipment creation events"
+            contactEmail: "webhooks@example.com"
+
+    SubscriptionResponse:
+      type: object
+      required:
+        - subscriptionId
+        - callbackUrl
+        - status
+        - createdAt
+      properties:
+        subscriptionId:
+          type: string
+          format: uuid
+          description: Unique identifier for the subscription
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        callbackUrl:
+          type: string
+          format: uri
+          description: The registered callback URL
+          example: "https://example.com/webhooks/new-shipments"
+        context:
+          type: string
+          description: Context filter if applicable
+          example: "PDC"
+        shipmentUuid:
+          type: string
+          format: uuid
+          description: UUID of the shipment for which the subscription has been activated
+        type:
+          type: array
+          items:
+            type: string
+          description: Event type filter if applicable
+          example: ["shipment_created", "shipment_delivered"]
+        status:
+          type: string
+          enum: [active, inactive, suspended]
+          description: Current status of the subscription
+          example: "active"
+        createdAt:
+          type: string
+          format: date-time
+          description: When the subscription was created
+          example: "2024-01-15T10:30:00Z"
+        updatedAt:
+          type: string
+          format: date-time
+          description: When the subscription was last updated
+          example: "2024-01-15T10:30:00Z"
+        metadata:
+          type: object
+          additionalProperties: true
+          description: Additional metadata for the subscription
+
+    # Webhook Payload Schemas
+    ShipmentWebhookPayload:
+      type: object
+      required:
+        - id
+        - context
+        - resourceUrl
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the new shipment
+          example: "ship_12345"
+        context:
+          type: string
+          description: Context of the shipment (e.g., "PDC" for Pharma Data Corridor)
+          example: "PDC"
+        resourceUrl:
+          type: string
+          format: uri
+          description: URL to retrieve detailed shipment information
+          example: "https://api.notn.org/v1/shipments/ship_12345"
+
+    EventWebhookPayload:
+      type: object
+      required:
+        - id
+        - type
+        - shipmentUuid
+      properties:
+        id:
+          type: string
+          description: Unique identifier for the shipment event
+          example: "evt_67890"
+        eventType:
+          type: string
+          description: Type of the shipment event
+          example: "shipment_created"
+        shipmentUuid:
+          type: string
+          format: uuid
+          description: UUID of the shipment this event relates to
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        resourceUrl:
+          type: string
+          format: uri
+          description: URL to retrieve detailed shipment-event information
+          example: "https://api.notn.org/v1/shipment-events/ship_12345"
+
+    # Response Schemas for Detail Endpoints
+    ShipmentDetailsResponse:
+      type: object
+      required:
+        - shipmentUuid
+        - id
+        - context
+        - status
+      properties:
+        shipmentUuid:
+          type: string
+          format: uuid
+          description: Unique UUID identifier for the shipment
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        id:
+          type: string
+          description: Human-readable shipment ID
+          example: "ship_12345"
+        context:
+          type: string
+          description: Context of the shipment
+          example: "PDC"
+        status:
+          type: string
+          enum: [created, in_transit, delivered, cancelled]
+          description: Current status of the shipment
+          example: "created"
+        createdAt:
+          type: string
+          format: date-time
+          description: When the shipment was created
+          example: "2024-01-15T10:30:00Z"
+
+    EventDetailsResponse:
+      type: object
+      required:
+        - eventId
+        - eventType
+        - shipmentUuid
+        - eventData
+        - occurredAt
+      properties:
+        eventId:
+          type: string
+          description: Unique identifier for the shipment event
+          example: "evt_67890"
+        eventType:
+          type: string
+          description: Type of the shipment event
+          example: "shipment_created"
+        shipmentUuid:
+          type: string
+          format: uuid
+          description: UUID of the shipment this event relates to
+          example: "123e4567-e89b-12d3-a456-426614174000"
+        eventData:
+          oneOf:
+            - $ref: '#/components/schemas/ShipmentCreatedEventData'
+            - $ref: '#/components/schemas/ShipmentDeliveredEventData'
+            # Additional event data templates can be added here
+        occurredAt:
+          type: string
+          format: date-time
+          description: When the event occurred
+          example: "2024-01-15T10:30:00Z"
+
+    # Event Data Templates
+    ShipmentCreatedEventData:
+      type: object
+      required:
+        - templateVersion
+        - shipmentDetails
+      properties:
+        templateVersion:
+          type: string
+          description: Version of the event data template
+          example: "1.0"
+        shipmentDetails:
+          type: object
+          properties:
+            origin:
+              type: string
+              description: Origin location of the shipment
+              example: "Warehouse A, Amsterdam"
+            destination:
+              type: string
+              description: Destination location of the shipment
+              example: "Distribution Center B, Berlin"
+            estimatedDelivery:
+              type: string
+              format: date-time
+              description: Estimated delivery date and time
+              example: "2024-01-20T14:00:00Z"
+            priority:
+              type: string
+              enum: [low, normal, high, urgent]
+              description: Priority level of the shipment
+              example: "high"
+
+    ShipmentDeliveredEventData:
+      type: object
+      required:
+        - templateVersion
+        - deliveryDetails
+      properties:
+        templateVersion:
+          type: string
+          description: Version of the event data template
+          example: "1.0"
+        deliveryDetails:
+          type: object
+          properties:
+            deliveredAt:
+              type: string
+              format: date-time
+              description: Actual delivery date and time
+              example: "2024-01-18T11:30:00Z"
+            deliveredBy:
+              type: string
+              description: Name or identifier of the person who delivered
+              example: "John Smith"
+            signature:
+              type: string
+              description: Digital signature or proof of delivery
+              example: "JS_20240118_1130"
+            location:
+              type: string
+              description: Specific delivery location
+              example: "Loading Dock 3, Distribution Center B"
+            notes:
+              type: string
+              description: Additional delivery notes
+              example: "Package was left with security desk"
+
+    ErrorResponse:
+      type: object
+      required:
+        - error
+        - message
+      properties:
+        error:
+          type: string
+          description: Error code
+          example: "invalid_request"
+        message:
+          type: string
+          description: Human-readable error message
+          example: "The request is missing required parameters"
+        details:
+          type: object
+          additionalProperties: true
+          description: Additional error details
+        timestamp:
+          type: string
+          format: date-time
+          description: When the error occurred
+          example: "2024-01-15T10:30:00Z"
+
+
+tags:
+  - name: Shipper
+    description: Endpoints for parties with Shipper role
+  - name: Data Provider
+    description: Endpoints for parties with Data Provider role
