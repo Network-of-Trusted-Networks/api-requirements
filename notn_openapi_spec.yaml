@@ -11,7 +11,7 @@ info:
 
     ## Security considerations
     - The callbackUrl must use HTTPS in production environments to ensure secure communication.
-    - Subscribers may validate incoming webhook requests to ensure they originate from trusted sources using the provided bearer token.
+    - Subscribers (clients) may validate incoming webhook requests using the HMAC-SHA256 signature in the X-Hook-Signature header. The signature is calculated using the secret provided during subscription.
 
     ## Alignment with DCSA
     The endpoints in this specification are loosely aligned with the [DCSA webhook specification for track and trace](https://app.swaggerhub.com/apis/dcsaorg/DCSA_TNT/2.2.0#/Events/).
