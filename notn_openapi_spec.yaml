@@ -9,10 +9,14 @@ info:
     ## Authentication
     All endpoints require OAuth 2.0 bearer token authentication. The access token must be obtained from the `/token` endpoint (following iSHARE standard).
 
+    ## Security considerations
+    - The callbackUrl must use HTTPS in production environments to ensure secure communication.
+    - Subscribers may validate incoming webhook requests to ensure they originate from trusted sources using the provided bearer token.
+
     ## Alignment with DCSA
     The endpoints in this specification are loosely aligned with the [DCSA webhook specification for track and trace](https://app.swaggerhub.com/apis/dcsaorg/DCSA_TNT/2.2.0#/Events/).
     
-  version: "0.2"
+  version: 0.3
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -336,7 +340,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
 
-  /shipment-events/{eventId}:
+  /events/{eventId}:
     get:
       tags:
         - Data Provider
@@ -392,6 +396,18 @@ paths:
         parameter when subscribing. This example endpoint explains the format
         of the POST request that the shipper will make to the callbackUrl.
       operationId: postShipmentCallback
+      security: 
+        - {}
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Hook-Signature
+          schema:
+            type: string
+          required: true
+          description: | 
+            Header containing the HMAC-SHA-256 signature that was calculated
+            using the secret that was provided during subscription.
       requestBody:
         required: true
         content:
@@ -430,6 +446,18 @@ paths:
         the format of the POST request that the Data provider  will make to the 
         callbackUrl.
       operationId: postEventCallback
+      security: 
+        - {}
+        - BearerAuth: []
+      parameters:
+        - in: header
+          name: X-Hook-Signature
+          schema:
+            type: string
+          required: true
+          description: | 
+            Header containing the HMAC-SHA-256 signature that was calculated
+            using the secret that was provided during subscription.
       requestBody:
         required: true
         content:
@@ -536,6 +564,7 @@ components:
         - callbackUrl
         - status
         - createdAt
+        - secret
       properties:
         subscriptionId:
           type: string
@@ -580,6 +609,15 @@ components:
           type: object
           additionalProperties: true
           description: Additional metadata for the subscription
+        resourceUrl:
+          type: string
+          format: uri
+          description: URL that points to the location where details about an event may be retrieved
+          example: "https://api.example-data-provider.com/v1/events/"
+        secret:
+          type: string
+          description: Secret that may be used to validate incoming requests to the callbackUrl for authenticity, using HMAC-SHA-256.
+          example: 4703d481ddedca88184497744b52937586bef3b273645082c04529f73b85456e
 
     # Webhook Payload Schemas
     ShipmentWebhookPayload:
@@ -587,7 +625,6 @@ components:
       required:
         - id
         - context
-        - resourceUrl
       properties:
         id:
           type: string
@@ -597,11 +634,6 @@ components:
           type: string
           description: Context of the shipment (e.g., "PDC" for Pharma Data Corridor)
           example: "PDC"
-        resourceUrl:
-          type: string
-          format: uri
-          description: URL to retrieve detailed shipment information
-          example: "https://api.notn.org/v1/shipments/ship_12345"
 
     EventWebhookPayload:
       type: object
@@ -623,11 +655,6 @@ components:
           format: uuid
           description: UUID of the shipment this event relates to
           example: "123e4567-e89b-12d3-a456-426614174000"
-        resourceUrl:
-          type: string
-          format: uri
-          description: URL to retrieve detailed shipment-event information
-          example: "https://api.notn.org/v1/shipment-events/ship_12345"
 
     # Response Schemas for Detail Endpoints
     ShipmentDetailsResponse:
