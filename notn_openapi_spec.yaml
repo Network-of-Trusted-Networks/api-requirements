@@ -417,10 +417,6 @@ paths:
       responses:
         '200':
           description: Shipment callback received successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubscriptionResponse'
         '400':
           description: Invalid request parameters
           content:
@@ -467,10 +463,6 @@ paths:
       responses:
         '200':
           description: Shipment callback received successfully
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/SubscriptionResponse'
         '400':
           description: Invalid request parameters
           content:
