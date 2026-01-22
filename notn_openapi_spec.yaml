@@ -52,7 +52,6 @@ paths:
         The subscription can optionally request to filter shipments by context
         (e.g., "PDC" for Pharma Data Corridor).
 
-
         When a new shipment is created that matches the subscription criteria,
         the webhook will be triggered
 
@@ -322,11 +321,9 @@ paths:
         - Shipper
       summary: Get shipment details
       description: >
-        Retrieve shipment details by ID. This endpoint is called by webhook
-        subscribers after receiving
-
-        a new shipment notification to get the shipment UUID and additional
-        details.
+        Retrieve shipment details by PublicID. This endpoint is called by webhook
+        subscribers after receiving a new shipment notification to get the 
+        shipment identifier and additional details.
       operationId: getShipmentDetails
       security:
         - BearerAuth: []
@@ -334,7 +331,7 @@ paths:
         - name: id
           in: path
           required: true
-          description: Shipment ID received in the webhook payload
+          description: Shipment PublicID received in the webhook payload
           schema:
             type: string
             example: ship_12345
@@ -548,14 +545,13 @@ components:
       type: object
       required:
         - callbackUrl
-        - shipmentUuid
+        - shipmentId
         - events
       properties:
-        shipmentUuid:
+        shipmentId:
           type: string
-          format: uuid
           description: |
-            UUID of the shipment for which a subscription to events is required.
+            Identifier of the shipment for which a subscription to events is required.
         callbackUrl:
           type: string
           format: uri
@@ -606,10 +602,9 @@ components:
           type: string
           description: Context filter if applicable
           example: PDC
-        shipmentUuid:
+        shipmentId:
           type: string
-          format: uuid
-          description: UUID of the shipment for which the subscription has been activated
+          description: Identifier of the shipment for which the subscription has been activated
         type:
           type: array
           items:
@@ -661,7 +656,7 @@ components:
       properties:
         id:
           type: string
-          description: Unique identifier for the new shipment
+          description: Unique PublicID for the new shipment
           example: ship_12345
         context:
           type: string
@@ -672,33 +667,31 @@ components:
       required:
         - id
         - type
-        - shipmentUuid
+        - shipmentId
       properties:
         id:
           type: string
-          description: Unique identifier for the shipment event
+          description: Unique identifier of the event
           example: evt_67890
         eventType:
           type: string
           description: Type of the shipment event
-          example: shipment_created
-        shipmentUuid:
+          example: identifierChanged
+        shipmentId:
           type: string
-          format: uuid
-          description: UUID of the shipment this event relates to
+          description: Identifier of the shipment this event relates to
           example: 123e4567-e89b-12d3-a456-426614174000
     ShipmentDetailsResponse:
       type: object
       required:
-        - shipmentUuid
+        - shipmentId
         - id
         - context
         - status
       properties:
-        shipmentUuid:
+        shipmentId:
           type: string
-          format: uuid
-          description: Unique UUID identifier for the shipment
+          description: Unique identifier for the shipment
           example: 123e4567-e89b-12d3-a456-426614174000
         id:
           type: string
@@ -727,7 +720,7 @@ components:
       required:
         - eventId
         - eventType
-        - shipmentUuid
+        - shipmentId
         - eventData
         - occurredAt
       properties:
@@ -740,19 +733,49 @@ components:
           description: >-
             Type of the shipment event. This type should match one of the type
             identifiers as published on
-            https://network-of-trusted-networks.github.io
+            https://network-of-trusted-networks.github.io/event-schemas/
           enum:
-            - AirWaybill
-          example: AirWaybill
-        shipmentUuid:
+            - IDC
+            - RFT
+            - BKD
+            - FWB
+            - FHL
+            - BSL
+            - RCS
+            - FOH
+            - MAN
+            - DEP
+            - ARR
+            - CF
+            - FIW
+            - NFD
+            - FOW
+            - DLV
+            - DECL
+          example: IDC
+        shipmentId:
           type: string
-          format: uuid
-          description: UUID of the shipment this event relates to
+          description: Identifier of the shipment this event relates to
           example: 123e4567-e89b-12d3-a456-426614174000
         eventData:
           oneOf:
-            - $ref: >-
-                https://network-of-trusted-networks.github.io/event-schemas/v0.1/awb.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/idc.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/rft.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/bkd.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/fwb.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/fhl.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/bsl.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/rcs.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v.1/foh.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/man.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/dep.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/arr.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/cf.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/fiw.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/nfd.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/fow.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/dlv.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/decl.json
         occurredAt:
           type: string
           format: date-time
