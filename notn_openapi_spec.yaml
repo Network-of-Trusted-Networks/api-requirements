@@ -508,6 +508,31 @@ components:
 
         The access token must be obtained at the /token endpoint.
   schemas:
+    EventType:
+      type: string
+      description: >-
+        Type of the shipment event. This type should match one of the type
+        identifiers as published on
+        https://network-of-trusted-networks.github.io/event-schemas/
+      enum:
+        - IDC
+        - RFT
+        - BKD
+        - FWB
+        - FHL
+        - BSL
+        - RCS
+        - FOH
+        - MAN
+        - DEP
+        - ARR
+        - CF
+        - FIW
+        - NFD
+        - FOW
+        - DLV
+        - DECL
+      example: IDC
     NewShipmentSubscriptionRequest:
       type: object
       required:
@@ -565,13 +590,13 @@ components:
         eventType:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/EventType'
           description: |
             Optional filter to subscribe only to events of a specific type.
             If not provided, all event types will be included.
           example:
-            - shipment_created
-            - shipment_delivered
+            - IDC
+            - RFT
         metadata:
           type: object
           additionalProperties: true
@@ -674,9 +699,7 @@ components:
           description: Unique identifier of the event
           example: evt_67890
         eventType:
-          type: string
-          description: Type of the shipment event
-          example: identifierChanged
+          $ref: '#/components/schemas/EventType'
         shipmentId:
           type: string
           description: Identifier of the shipment this event relates to
@@ -729,30 +752,7 @@ components:
           description: Unique identifier for the shipment event
           example: evt_67890
         eventType:
-          type: string
-          description: >-
-            Type of the shipment event. This type should match one of the type
-            identifiers as published on
-            https://network-of-trusted-networks.github.io/event-schemas/
-          enum:
-            - IDC
-            - RFT
-            - BKD
-            - FWB
-            - FHL
-            - BSL
-            - RCS
-            - FOH
-            - MAN
-            - DEP
-            - ARR
-            - CF
-            - FIW
-            - NFD
-            - FOW
-            - DLV
-            - DECL
-          example: IDC
+          $ref: '#/components/schemas/EventType'
         shipmentId:
           type: string
           description: Identifier of the shipment this event relates to
