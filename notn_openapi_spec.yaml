@@ -630,14 +630,14 @@ components:
         shipmentId:
           type: string
           description: Identifier of the shipment for which the subscription has been activated
-        type:
+        eventType:
           type: array
           items:
-            type: string
+            $ref: '#/components/schemas/EventType'
           description: Event type filter if applicable
           example:
-            - shipment_created
-            - shipment_delivered
+            - IDC
+            - RFT
         status:
           type: string
           enum:
