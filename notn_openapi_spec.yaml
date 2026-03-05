@@ -15,7 +15,7 @@ info:
 
     All endpoints require OAuth 2.0 bearer token authentication. The access
     token must be obtained from the `/token` endpoint (following iSHARE
-    standard).
+    standard). This does not apply to the callbackUrl endpoints.
 
 
     ## Security considerations
@@ -423,6 +423,17 @@ paths:
         - BearerAuth: []
       parameters:
         - in: header
+          name: X-Hook-Subscription-Id
+          schema:
+            type: string
+            format: uuid
+          required: false
+          description: |
+            Identifier of the subscription that triggered this webhook delivery.
+
+            Can be used by the receiver to look up the correct shared secret
+            when multiple subscriptions share the same callbackUrl.
+        - in: header
           name: X-Hook-Signature
           schema:
             type: string
@@ -467,6 +478,17 @@ paths:
         - {}
         - BearerAuth: []
       parameters:
+        - in: header
+          name: X-Hook-Subscription-Id
+          schema:
+            type: string
+            format: uuid
+          required: false
+          description: |
+            Identifier of the subscription that triggered this webhook delivery.
+
+            Can be used by the receiver to look up the correct shared secret
+            when multiple subscriptions share the same callbackUrl.
         - in: header
           name: X-Hook-Signature
           schema:
