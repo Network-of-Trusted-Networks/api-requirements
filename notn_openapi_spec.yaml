@@ -788,7 +788,7 @@ components:
             - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/fhl.json
             - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/bsl.json
             - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/rcs.json
-            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v.1/foh.json
+            - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/foh.json
             - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/man.json
             - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/dep.json
             - $ref: https://network-of-trusted-networks.github.io/event-schemas/v0.1/arr.json
