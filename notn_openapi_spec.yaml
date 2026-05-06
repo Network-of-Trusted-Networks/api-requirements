@@ -593,7 +593,6 @@ components:
       required:
         - callbackUrl
         - shipmentId
-        - events
       properties:
         shipmentId:
           type: string
@@ -713,7 +712,7 @@ components:
       type: object
       required:
         - id
-        - type
+        - eventType
         - shipmentId
       properties:
         id:
